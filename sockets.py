@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
-# Copyright (c) 2013-2014 Abram Hindle
+# Copyright (c) 2013-2014 Abram Hindle, Brandon Hayduk
+# Also created referencing http://github.com/abramhindle/websocketsexamples/blob/master
+# /chat.py
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,13 +16,16 @@
 # limitations under the License.
 #
 import flask
-from flask import Flask, request
+from flask import Flask, request, redirect, render_template
 from flask_sockets import Sockets
 import gevent
 from gevent import queue
 import time
 import json
 import os
+#from ws4py.websocket import WebSocket
+
+
 
 app = Flask(__name__)
 sockets = Sockets(app)
@@ -59,29 +64,79 @@ class World:
     def world(self):
         return self.space
 
-myWorld = World()        
+
+myWorld = World()
+#list clients
+clients = list()
+
+class Client:
+    def __init__(self):
+        self.queue = queue.Queue()
+
+    def put(self, v):
+        self.queue.put_nowait(v)
+
+    def get(self):
+        return self.queue.get()
+
+        
 
 def set_listener( entity, data ):
     ''' do something with the update ! '''
+    response = dict()
+    response[entity] = data
+    for client in clients:
+        client.put(json.dumps(response))
+    
+    
 
 myWorld.add_set_listener( set_listener )
         
 @app.route('/')
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    return redirect('static/index.html')
+    
 
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
-    # XXX: TODO IMPLEMENT ME
-    return None
+    try:
+        print "Try"
+
+        while True:
+            msg = ws.receive()
+            print "ws recv: %s" % msg
+
+            if(msg is not None):
+                packet = json.loads(msg)
+                #Iterate through packet
+                for entity in packet:
+                    myWorld.set(entity, packet[entity])
+                    print "World Changed"
+    except Exception as e:
+        print e
 
 @sockets.route('/subscribe')
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
        websocket and read updates from the websocket '''
-    # XXX: TODO IMPLEMENT ME
-    return None
+   
+    #create client to be appended
+    newClient = Client()
+    clients.append(newClient)
+    g = gevent.spawn(read_ws, ws, newClient)
+
+    #print("test")
+    try:
+        while True:
+            msg = newClient.get()
+            ws.send(msg)
+    except Exception as e:
+        print e
+
+    finally:
+        clients.remove(newClient)
+        gevent.kill(g)
 
 
 def flask_post_json():
@@ -97,7 +152,10 @@ def flask_post_json():
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+    data = flask_post_json
+    myWorld.set(entity,data)
+    #meh
+    return jsonify(myWorld.get(entity))
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
