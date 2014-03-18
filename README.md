@@ -17,6 +17,8 @@ pip install ws4py
 Contributors / Licensing
 ========================
 
+Brandon Hayduk for cmput 404 assignment websockets
+
 Generally everything is LICENSE'D under the Apache 2 license by Abram Hindle.
 
 freetests.py is LICENSE'D under a BSD-like license:
