@@ -54,7 +54,7 @@ function drawCircle(context,entity) {
         //moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
+        arc(x, y, (entity["radius"])?entity["radius"]:30, 0, 2.0 * Math.PI, false);  
         stroke();                                
     }
 }
@@ -64,7 +64,7 @@ function prepEntity(entity) {
         entity["colour"] = "#FF0000";
     }
     if (!entity["radius"]) {
-        entity["radius"] = 50;
+        entity["radius"] = 10;
     }
     return entity;
 }
@@ -233,12 +233,13 @@ mouse = (function() {
 
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
+//minimalized
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'black'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'grey'});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'black'});
+    addEntityWithoutName({'x':x,'y':y,'colour':'white'});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
@@ -256,8 +257,8 @@ function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
-        //
-    };
+        //Nothing should be required here. 
+    };	
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
     };
@@ -284,7 +285,7 @@ wsSetup();
 
 
 // 30 frames per second
-setInterval( update, 1000/10.0);
+setInterval( update, 1000/30.0);
 
 
     </script>
