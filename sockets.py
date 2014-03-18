@@ -101,7 +101,6 @@ def hello():
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
     try:
-        print "Try"
 
         while True:
             msg = ws.receive()
@@ -109,10 +108,12 @@ def read_ws(ws,client):
 
             if(msg is not None):
                 packet = json.loads(msg)
+
                 #Iterate through packet
                 for entity in packet:
                     myWorld.set(entity, packet[entity])
                     print "World Changed"
+
     except Exception as e:
         print e
 
